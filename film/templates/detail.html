@@ -1,0 +1,259 @@
+{% extends 'base_detail_list.html' %}
+{% load static %}
+
+	{% block title %}深度影视-影片详情{% endblock title %}
+{% block main_content %}
+	<div class="breadcrumb">
+		<a href="{% url 'film:index' %}">全部影片</a>
+		<span>></span>
+		<a href="#">{{ film.name }}</a>
+		<span>></span>
+		<a href="#">影片详情</a>
+	</div>
+
+	<div class="goods_detail_con clearfix">
+		<div class="goods_detail_pic fl">
+            <img src="{{ film.poster.url }}">
+        </div>
+
+		<div class="goods_detail_list fr">
+        {% csrf_token %}
+			<h3>{{ film.name }}</h3>
+            <h4>评分：{{ film.score }}</h4>
+{#            点击添加收藏：<a href="{% url 'favorites:add' film.id %}" class="add_film" title="加入收藏夹"></a>#}
+
+            {% if is_collected %}
+                <a href="javascript:;" film_id="{{ film.id }}"  id="add_remove_film" class="remove_film" title="删除收藏夹"></a>
+            {% else %}
+                <a href="javascript:;" film_id="{{ film.id }}"  id="add_remove_film" class="add_film" title="加入收藏夹"></a>
+            {% endif %}
+			<h4>导演：{{ film.director }}</h4>
+			<h4>主要演员：{{ film.actor }}</h4>
+            <h4>制片国家/地区：{{ film.production }}</h4>
+            <h4>所属区域：{{ film.film_region.name }}</h4>
+			<h4>年份：{{ film.year }}</h4>
+
+			<h4>类型：
+                {% for type in film.film_type.all %}
+                    {{ type.name }}
+                {% endfor %}
+            </h4>
+            <p>影片播放：</p>
+            <h4>
+                {% if film.video %}
+                    <video src="{{ film.video.url }}"  controls ></video>
+
+                {% else %}
+                    哦豁，片源丢失！！！
+                {% endif %}
+            </h4>
+
+{#			<div class="prize_bar">#}
+{#				<span class="show_pirze">¥<em>{{ sku.price }}</em></span>#}
+{#				<span class="show_unit">单  位：{{ sku.unite }}</span>#}
+{#			</div>#}
+{#			<div class="goods_num clearfix">#}
+{#				<div class="num_name fl">数 量：</div>#}
+{#				<div class="num_add fl">#}
+{#					<input type="text" class="num_show fl" value="1">#}
+{#					<a href="javascript:;" class="add fr">+</a>#}
+{#					<a href="javascript:;" class="minus fr">-</a>	#}
+{#				</div> #}
+{#			</div>#}
+            <div>
+                <p>其它：</p>
+                <ul>
+                    {% for series_film in series_films  %}
+                        <li><a href="{% url 'film:detail' series_film.id %}">{{ series_film.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+		</div>
+	</div>
+
+	<div class="main_wrap clearfix">
+		<div class="l_wrap fl clearfix">
+			<div class="new_goods">
+				<h3>新片推荐</h3>
+				<ul>
+                    {% for new_film in new_films %}
+					<li>
+						<a href="{% url 'film:detail' new_film.id %}"><img src="{{ new_film.poster.url}}"></a>
+						<h4><a href="{% url 'film:detail' new_film.id %}">{{ new_film.name }}</a></h4>
+						<div class="prize">{{ new_film.score }}</div>
+					</li>
+                    {% endfor %}
+				</ul>
+			</div>
+		</div>
+
+		<div class="r_wrap fr clearfix">
+			<ul class="detail_tab clearfix">
+				<li id="tag_detail" class="active">影片介绍</li>
+				<li id="tag_comment">评论</li>
+			</ul>
+
+			<div class="tab_content" id="tab_detail">
+				<dl>
+					<dt>影片简介：</dt>
+					<dd>{{ film.description }}</dd>
+				</dl>
+			</div>
+			<div class="tab_content" id="tab_comment" style="display: none">
+				<dl>
+{#                    {% for order in sku_orders %}#}
+{#					<dt>评论时间：{{ order.update_time }}&nbsp;&nbsp;{{ order.order.user.username }}</dt>#}
+{#					<dd>评论内容{{ order.comment }} </dd>#}
+{#                    {% endfor %}#}
+				</dl>
+			</div>
+		</div>
+	</div>
+{% endblock main_content %}
+	{% block bottom %}<div class="add_jump"></div> {% endblock bottom %}
+
+{% block bottomfiles %}
+	<script type="text/javascript" src="{% static 'js/jquery-1.12.4.min.js'  %}"></script>
+	<script type="text/javascript">
+    $('#tag_detail').click(function () {
+        $('#tag_comment').removeClass('active')
+        $(this).addClass('active')
+        $('#tab_detail').show()
+    })
+
+    $('#tag_comment').click(function () {
+        $('#tag_detail').removeClass('active')
+        $(this).addClass('active')
+        $('#tab_comment').show()
+    })
+
+    update_goods_amount()
+    // 计算商品的总价格
+    function update_goods_amount() {
+        //获取商品的单价和数量
+        var price = $('.show_pirze').children('em').text()
+        var count = $('.num_show').val()
+
+        //计算商品总价
+        price = parseFloat(price)
+        count = parseInt(count)
+        amount = price * count
+
+        //设置商品总价
+        $('.total').children('em').text(amount.toFixed(2)+'元')
+    }
+
+    //增加商品数量
+    $('.add').click(function () {
+        //获取商品的数量
+        var count = $('.num_show').val()
+        //加1
+        count = parseInt(count)+1
+        //设置商品的数量
+        $('.num_show').val(count)
+        //重新计算商品总价
+        update_goods_amount()
+    })
+
+    //减少商品数量
+        $('.minus').click(function () {
+        //获取商品的数量
+        var count = $('.num_show').val()
+        //减1
+        count = parseInt(count)-1
+        if (count<=0){
+            count = 1
+        }
+        //设置商品的数量
+        $('.num_show').val(count)
+        //重新计算商品总价
+        update_goods_amount()
+    })
+
+    //直接输入商品数量
+    $('.num_show').blur(function () {
+        //获取用户输入的数量
+        count = $(this).val()
+        //校验count是否合法
+
+        if (isNaN(count) || count.trim().length==0 || parseInt(count)<=0){
+            count = 1
+        }
+        //重新设置商品的数目
+        $(this).val(parseInt(count))
+        //重新计算商品总价
+        update_goods_amount()
+    })
+
+		$('#add_cart').click(function(){
+		    //获取sku_id和数量
+            count = $('.num_show').val()
+            sku_id = $(this).attr('sku_id')
+            csrf = $('input[name="csrfmiddlewaretoken"]').val()
+            //组织参数
+            params = {'sku_id':sku_id,'count':count,'csrfmiddlewaretoken':csrf}
+            //发送到购物车模块/cart/add处理
+            $.post('/cart/add/',params,function (data) {
+                if (data.res ==5){
+                    //添加成功
+                    var $add_x = $('#add_cart').offset().top;
+                    var $add_y = $('#add_cart').offset().left;
+
+                    var $to_x = $('#show_count').offset().top;
+                    var $to_y = $('#show_count').offset().left;
+
+                    $(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'})
+                    $(".add_jump").stop().animate({
+                        'left': $to_y+7,
+                        'top': $to_x+7},
+                        "fast", function() {
+					        $(".add_jump").fadeOut('fast',function(){
+					            //重新设备购物车中商品的条目数
+						        $('#show_count').html(data.total_count);
+					        });
+
+			            });
+                }else {
+                    alert(data.errmsg)
+                }
+            })
+
+		})
+
+    $('#add_remove_film').click(function () {
+        //获取film_id
+        film_id = $(this).attr('film_id')
+        csrf = $('input[name="csrfmiddlewaretoken"]').val()
+
+        //组织参数
+        params = {'film_id': film_id, 'csrfmiddlewaretoken': csrf}
+
+        //判断当前是添加或者删除收藏夹
+        if ($('#add_remove_film').hasClass('add_film')) {
+            //发送到添加收藏模块/favorites/add处理
+            $.post('/favorites/add/', params, function (data) {
+                if (data.res == 3) {
+                    $('#add_remove_film').removeClass('add_film')
+                    $('#add_remove_film').addClass('remove_film')
+                    alert('已添加收藏')
+                } else {
+                    alert(data.errmsg)
+                }
+            })
+
+        } else if ($('#add_remove_film').hasClass('remove_film')) {
+            //发送到删除收藏模块/favorites/remove处理
+            $.post('/favorites/remove/', params, function (data) {
+                if (data.res == 3) {
+                    $('#add_remove_film').removeClass('remove_film')
+                    $('#add_remove_film').addClass('add_film')
+                    alert('已移除收藏')
+                } else {
+                    alert(data.errmsg)
+                }
+            })
+        }
+    })
+
+	</script>
+{% endblock bottomfiles %}

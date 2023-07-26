@@ -1,0 +1,5 @@
+# 创建数据库及用户
+create database deepfilms default character set utf8mb4 collate utf8mb4_unicode_ci;
+create user deepfilms identified by 'Quanyou9527#';
+grant all privileges on deepfilms.* to 'deepfilms'@'%' with grant option;
+flush privileges;
